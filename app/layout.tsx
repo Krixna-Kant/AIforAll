@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "AI4All | Comprehensive Accessibility Platform",
   description: "Making digital content accessible for everyone with AI-powered tools and multilingual support",
-    generator: 'v0.dev'
+    generator: 'Krishna'
 }
 
 export default function RootLayout({
