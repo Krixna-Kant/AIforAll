@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Accessibility Assistant</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 15px; width: 300px; margin: 0; }
+        h2 { color: #4285f4; margin-top: 0; }
+        .feature-container { margin-bottom: 15px; padding: 10px; border-radius: 5px; background-color: #f5f5f5; }
+        .feature-title { font-weight: bold; margin-bottom: 5px; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #4285f4; }
+        input:focus + .slider { box-shadow: 0 0 1px #4285f4; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        select, button { margin-top: 5px; padding: 5px; width: 100%; }
+        .flex-container { display: flex; justify-content: space-between; align-items: center; }
+        select { border-radius: 4px; border: 1px solid #ccc; }
+        .feature-description { font-size: 12px; margin-top: 5px; color: #555; }
+        .save-button { background-color: #4285f4; color: white; border: none; border-radius: 4px; padding: 8px; cursor: pointer; margin-top: 10px; }
+        .save-button:hover { background-color: #3b77db; }
+    </style>
+</head>
+<body>
+    <h2>AI Accessibility Assistant</h2>
+
+    <div class="feature-container">
+        <div class="flex-container">
+            <div class="feature-title">Text-to-Speech</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggleTTS" aria-label="Enable text to speech">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <select id="ttsLanguage" aria-label="Select text to speech language">
+            <option value="en-US">English (US)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="hi-IN">Hindi</option>
+            <option value="es-ES">Spanish</option>
+            <option value="fr-FR">French</option>
+            <option value="de-DE">German</option>
+        </select>
+        <div class="feature-description">Reads web content aloud on hover/selection</div>
+    </div>
+
+    <div class="feature-container">
+        <div class="flex-container">
+            <div class="feature-title">Dyslexia-Friendly Font</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggleDyslexiaFont" aria-label="Enable dyslexia friendly font">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="feature-description">Changes fonts to OpenDyslexic</div>
+    </div>
+
+    <div class="feature-container">
+        <div class="flex-container">
+            <div class="feature-title">High Contrast Mode</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggleHighContrast" aria-label="Enable high contrast mode">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="feature-description">Enhances text visibility</div>
+    </div>
+
+    <div class="feature-container">
+        <div class="flex-container">
+            <div class="feature-title">Voice Commands</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="toggleVoiceCommand" aria-label="Enable voice commands">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="feature-description">
+            Say: "scroll down", "scroll up", "go back", "read page", "stop reading"
+        </div>
+    </div>
+
+    <button class="save-button" id="saveSettings">Save Settings</button>
+
+    <script src="popup.js"></script>
+</body>
+</html>

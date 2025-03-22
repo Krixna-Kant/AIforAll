@@ -1,0 +1,6 @@
+/* Custom styles for accessibility features */
+.dyslexia-font { font-family: 'OpenDyslexic', sans-serif; line-height: 1.5; letter-spacing: 0.05em; }
+.high-contrast { background-color: #000 !important; color: #fff !important; }
+.high-contrast a { color: #ffff00 !important; text-decoration: underline !important; }
+.high-contrast img { filter: brightness(0.8) contrast(1.2) !important; }
+.voice-command-indicator { position: fixed; bottom: 20px; right: 20px; background-color: rgba(0, 0, 0, 0.5); color: white; padding: 10px; border-radius: 50%; z-index: 10000; }
