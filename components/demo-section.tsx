@@ -20,44 +20,86 @@ import {
 } from "lucide-react"
 
 interface DemoSectionProps {
-  type: "chatbot" | "converter" | "signlanguage"
+  type: "chatbot" | "converter"
 }
 
 export default function DemoSection({ type }: DemoSectionProps) {
   const [loading, setLoading] = useState(false)
   const [inputText, setInputText] = useState("")
   const [outputText, setOutputText] = useState("")
-  const [selectedVoice, setSelectedVoice] = useState("en-US")
+  const [selectedVoice, setSelectedVoice] = useState("audio")
   const [selectedFont, setSelectedFont] = useState("default")
-  const [fontSize, setFontSize] = useState([16])
-  const [contrast, setContrast] = useState([50])
+  const [fontSize, setFontSize] = useState(16)
+  const [contrast, setContrast] = useState(50)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!inputText.trim()) return
 
     setLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      if (type === "chatbot") {
-        setOutputText(
-          "I'm the AI4All assistant. I can help answer your questions about accessibility and provide guidance on making content more accessible. I support multiple languages and can provide information in various formats. How can I assist you today?",
-        )
-      } else if (type === "signlanguage") {
-        setOutputText(
-          "Sign language response generated. In a real implementation, this would show a video of sign language interpretation of your query.",
-        )
-      } else {
-        setOutputText(inputText)
-      }
+    try {
+      // Send input text to the chatbot endpoint
+      const chatResponse = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: inputText }),
+      })
+      const chatData = await chatResponse.json()
+      setOutputText(chatData.response)
+
+      // Send chatbot response to the text-to-speech endpoint
+      const ttsResponse = await fetch("http://localhost:5000/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: chatData.response }),
+      })
+      const ttsData = await ttsResponse.json()
+
+      // Play the generated audio
+      const audio = new Audio(ttsData.audio_url)
+      audio.play()
+    } catch (error) {
+      console.error("Error:", error)
+      setOutputText("Failed to get response from the chatbot.")
+    } finally {
       setLoading(false)
-    }, 1500)
+    }
+  }
+
+  const handleVoiceInput = () => {
+    const recognition = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)()
+    recognition.lang = "en-US" 
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setInputText(transcript)
+    }
+    recognition.start()
   }
 
   const handleClear = () => {
     setInputText("")
     setOutputText("")
   }
+
+  const handleListen = async () => {
+    if (!outputText.trim()) return;
+  
+    try {
+      // Send chatbot response to the text-to-speech endpoint
+      const ttsResponse = await fetch("http://localhost:5000/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: outputText }),
+      });
+      const ttsData = await ttsResponse.json();
+  
+      // Play the generated audio
+      const audio = new Audio(ttsData.audio_url);
+      audio.play();
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,7 +111,7 @@ export default function DemoSection({ type }: DemoSectionProps) {
             </label>
             <Textarea
               id="chat-input"
-              placeholder="E.g., How can I make my website more accessible for screen readers? (Type in any language)"
+              placeholder="E.g., How can I make my website more accessible for screen readers?"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               rows={3}
@@ -78,14 +120,14 @@ export default function DemoSection({ type }: DemoSectionProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 🎤")}>
+            <Button variant="outline" size="sm" onClick={handleVoiceInput}>
               <MicIcon className="h-4 w-4 mr-2" />
               Voice Input
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 📷")}>
+            {/* <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 📷")}>
               <ImageIcon className="h-4 w-4 mr-2" />
               Upload Image
-            </Button>
+            </Button> */}
           </div>
 
           <div className="flex justify-between">
@@ -120,75 +162,18 @@ export default function DemoSection({ type }: DemoSectionProps) {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button variant="ghost" size="sm" className="gap-2">
+                <Button variant="ghost" size="sm" className="gap-2" onClick={handleListen}>
                   <Volume2 className="h-4 w-4" />
                   <span>Listen</span>
                 </Button>
-                <Button variant="ghost" size="sm" className="gap-2">
+                {/* <Button variant="ghost" size="sm" className="gap-2">
                   <HandIcon className="h-4 w-4" />
                   <span>Sign Language</span>
                 </Button>
                 <Button variant="ghost" size="sm" className="gap-2">
                   <FileTextIcon className="h-4 w-4" />
                   <span>Simplified Text</span>
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
-      ) : type === "signlanguage" ? (
-        <>
-          <div className="space-y-2">
-            <label htmlFor="sign-input" className="block text-sm font-medium">
-              Type or speak to get sign language translation
-            </label>
-            <Textarea
-              id="sign-input"
-              placeholder="Enter text to translate into sign language..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              rows={3}
-              className="resize-none"
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 🎤")}>
-              <MicIcon className="h-4 w-4 mr-2" />
-              Voice Input
-            </Button>
-          </div>
-
-          <div className="flex justify-between">
-            <Button onClick={handleSubmit} disabled={loading || !inputText.trim()} className="gap-2">
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Processing...</span>
-                </>
-              ) : (
-                <>
-                  <HandIcon className="h-4 w-4" />
-                  <span>Translate to Sign Language</span>
-                </>
-              )}
-            </Button>
-            <Button variant="outline" onClick={handleClear} disabled={loading || (!inputText && !outputText)}>
-              Clear
-            </Button>
-          </div>
-
-          {outputText && (
-            <div className="mt-6 space-y-4">
-              <p className="text-sm font-medium">Sign Language Translation:</p>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border">
-                <div className="text-center p-6">
-                  <HandIcon className="h-12 w-12 mx-auto text-primary mb-4" />
-                  <p>{outputText}</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    (In the actual application, this would display a video of a sign language interpreter or avatar)
-                  </p>
-                </div>
+                </Button> */}
               </div>
             </div>
           )}
@@ -239,14 +224,14 @@ export default function DemoSection({ type }: DemoSectionProps) {
               <label htmlFor="font-size" className="block text-sm font-medium mb-2">
                 Font Size: {fontSize}px
               </label>
-              <Slider id="font-size" value={fontSize} onValueChange={setFontSize} min={12} max={24} step={1} />
+              <Slider id="font-size" value={[fontSize]} onValueChange={(value) => setFontSize(value[0])} min={12} max={24} step={1} />
             </div>
 
             <div>
               <label htmlFor="contrast" className="block text-sm font-medium mb-2">
                 Contrast: {contrast}%
               </label>
-              <Slider id="contrast" value={contrast} onValueChange={setContrast} min={0} max={100} step={1} />
+              <Slider id="contrast" value={[contrast]} onValueChange={(value) => setContrast(value[0])} min={0} max={100} step={1} />
             </div>
           </div>
 
@@ -306,23 +291,7 @@ export default function DemoSection({ type }: DemoSectionProps) {
           {outputText && (
             <div className="mt-6">
               <p className="text-sm font-medium mb-2">Converted Content:</p>
-              <div
-                className="p-4 border rounded-lg"
-                style={{
-                  fontFamily:
-                    selectedFont === "opendyslexic"
-                      ? "'OpenDyslexic', sans-serif"
-                      : selectedFont === "arial"
-                        ? "Arial, sans-serif"
-                        : selectedFont === "verdana"
-                          ? "Verdana, sans-serif"
-                          : selectedFont === "comic"
-                            ? "'Comic Sans MS', cursive"
-                            : "inherit",
-                  fontSize: `${fontSize}px`,
-                  filter: `contrast(${contrast}%)`,
-                }}
-              >
+              <div className={`p-4 border rounded-lg ${selectedFont}`} style={{ fontSize: `${fontSize}px`, filter: `contrast(${contrast}%)` }}>
                 {outputText}
               </div>
 
@@ -347,4 +316,3 @@ export default function DemoSection({ type }: DemoSectionProps) {
     </div>
   )
 }
-

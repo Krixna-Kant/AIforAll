@@ -196,10 +196,10 @@ export default function Home() {
           </div>
 
           <Tabs defaultValue="chatbot" className="w-full max-w-4xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="chatbot">AI Chatbot</TabsTrigger>
               <TabsTrigger value="converter">Content Converter</TabsTrigger>
-              <TabsTrigger value="signlanguage">Sign Language</TabsTrigger>
+              {/* <TabsTrigger value="signlanguage">Sign Language</TabsTrigger> */}
             </TabsList>
             <TabsContent value="chatbot" className="p-4 border rounded-lg mt-4">
               <DemoSection type="chatbot" />
@@ -207,9 +207,9 @@ export default function Home() {
             <TabsContent value="converter" className="p-4 border rounded-lg mt-4">
               <DemoSection type="converter" />
             </TabsContent>
-            <TabsContent value="signlanguage" className="p-4 border rounded-lg mt-4">
+            {/* <TabsContent value="signlanguage" className="p-4 border rounded-lg mt-4">
               <DemoSection type="signlanguage" />
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
         </section>
 
