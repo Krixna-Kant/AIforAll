@@ -56,8 +56,11 @@ export default function Home() {
               AI4All is a comprehensive platform that transforms how people with disabilities experience digital content
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="gap-2">
+         
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            {/* Download Extension Button */}
+            <a href="https://github.com/Krixna-Kant/AI-Accessibility-Extension" target="_blank" rel="noopener noreferrer">
+              <Button size="lg" className="gap-2">
               <span>Download Extension</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -76,14 +79,22 @@ export default function Home() {
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-            </Button>
+              </Button>
+            </a>
+
+            {/* Explore Platform Button */}
             <Button variant="outline" size="lg" asChild>
               <Link href="#features">Explore Platform</Link>
             </Button>
-          </div>
+            </div>
+
+            {/* Optional: Add a small instruction */}
+            <p className="text-sm text-muted-foreground text-center mt-2">
+            Click "Download Extension" to visit the GitHub repository and download the extension.
+            </p>
           <div className="relative w-full max-w-4xl mx-auto mt-8 rounded-lg overflow-hidden shadow-xl border">
             <img
-              src="/placeholder.svg?height=600&width=1200"
+              src="/Extension-img.jpg"
               alt="AI4All platform interface showing various accessibility features including sign language translation and content conversion"
               className="w-full h-auto"
             />
@@ -91,7 +102,7 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-12 space-y-8">
+        <section id="features" className="py-4 space-y-8">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">Comprehensive Accessibility Solutions</h2>
             <p className="text-xl text-muted-foreground max-w-[700px] mx-auto">
@@ -290,16 +301,17 @@ export default function Home() {
               <CardContent className="space-y-4">
                 <div>
                   <h3 className="font-medium">Email</h3>
-                  <p>support@aiaccessibility.com</p>
+                  <p>kant19krishna@gmail.com</p>
                 </div>
                 <div>
                   <h3 className="font-medium">Phone</h3>
-                  <p>+1 (800) 123-4567</p>
+                  <p>926798XXXX</p>
                 </div>
                 <div>
                   <h3 className="font-medium">Social Media</h3>
                   <div className="flex space-x-4 mt-2">
                     <Button variant="ghost" size="icon" aria-label="Twitter">
+                    <a href="https://x.com/Krixna_kant" target="_blank" rel="noopener noreferrer" title="Twitter Profile">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -315,25 +327,30 @@ export default function Home() {
                       >
                         <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
                       </svg>
+                    </a>
                     </Button>
-                    <Button variant="ghost" size="icon" aria-label="Facebook">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-5 w-5"
-                        aria-hidden="true"
-                      >
-                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                      </svg>
-                    </Button>
+                    {/* GitHub */}
+            <Button variant="ghost" size="icon" aria-label="GitHub" asChild>
+              <a href="https://github.com/Krixna-Kant" target="_blank" rel="noopener noreferrer" title="GitHub Profile">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+                </svg>
+              </a>
+            </Button>
                     <Button variant="ghost" size="icon" aria-label="LinkedIn">
+                    <a href="https://www.linkedin.com/in/krishna-kant19/" target="_blank" rel="noopener noreferrer" title="LinkedIn Profile">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -351,6 +368,7 @@ export default function Home() {
                         <rect x="2" y="9" width="4" height="12" />
                         <circle cx="4" cy="4" r="2" />
                       </svg>
+                      </a>
                     </Button>
                   </div>
                 </div>
