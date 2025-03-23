@@ -15,12 +15,14 @@ export default function DemoSection({ type }: DemoSectionProps) {
   const [loading, setLoading] = useState(false);
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
+  const [originalText, setOriginalText] = useState("");
   const [audioUrl, setAudioUrl] = useState("");
   const [selectedOutputFormat, setSelectedOutputFormat] = useState("audio");
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [processingFile, setProcessingFile] = useState(false);
   const [outputType, setOutputType] = useState("");
+  const [isHtmlOutput, setIsHtmlOutput] = useState(false);
 
   // Handle chat submission
   const handleChatSubmit = async () => {
@@ -79,14 +81,32 @@ export default function DemoSection({ type }: DemoSectionProps) {
       }
 
       const convertData = await convertResponse.json();
+      
+      // Set original text if available
+      if (convertData.original_text) {
+        setOriginalText(convertData.original_text);
+      }
 
-      if (convertData.output_type === "audio") {
+      // Check for errors
+      if (convertData.error) {
+        toast({
+          title: "Error",
+          description: convertData.error,
+          variant: "destructive",
+        });
+        setOutputText(convertData.original_text || "Error occurred during conversion");
+        return;
+      }
+
+      // Handle different output types
+      setOutputType(convertData.output_type || selectedOutputFormat);
+      setIsHtmlOutput(convertData.is_html || false);
+
+      if (convertData.output_type === "audio" || selectedOutputFormat === "audio") {
         setAudioUrl(convertData.output_url);
-        setOutputText("Audio generated successfully. Click Listen to play.");
-        setOutputType("audio");
+        setOutputText(convertData.output || convertData.original_text || "Audio generated successfully. Click Listen to play.");
       } else {
-        setOutputText(convertData.output);
-        setOutputType(convertData.output_type);
+        setOutputText(convertData.output || "");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -107,7 +127,7 @@ export default function DemoSection({ type }: DemoSectionProps) {
       const ttsResponse = await fetch("http://localhost:5000/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, language: selectedLanguage }),
       });
 
       if (!ttsResponse.ok) {
@@ -118,6 +138,11 @@ export default function DemoSection({ type }: DemoSectionProps) {
       setAudioUrl(ttsData.audio_url);
     } catch (error) {
       console.error("Error generating audio:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate audio. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -191,43 +216,97 @@ export default function DemoSection({ type }: DemoSectionProps) {
     if (!file) return;
 
     setProcessingFile(true);
+    setInputText(`Processing image: ${file.name}`);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // Upload file
-      const uploadResponse = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed with status ${uploadResponse.status}`);
-      }
-
-      const uploadData = await uploadResponse.json();
-
+      // For image files, read and convert to base64
       if (file.type.startsWith("image/")) {
-        setInputText(`Processing image: ${file.name}`);
+        const reader = new FileReader();
+        
+        reader.onload = async (e) => {
+          try {
+            // Get base64 data without the prefix
+            const base64Data = (e.target?.result as string).split(',')[1];
+            
+            // Process the image using the convert endpoint
+            const convertResponse = await fetch("http://localhost:5000/convert", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                input_type: "image",
+                input_content: { data: base64Data },
+                output_format: selectedOutputFormat,
+                language: selectedLanguage,
+              }),
+            });
 
-        // Process the image for object detection
-        const convertResponse = await fetch("http://localhost:5000/convert", {
+            if (!convertResponse.ok) {
+              throw new Error(`Conversion failed with status ${convertResponse.status}`);
+            }
+
+            const result = await convertResponse.json();
+            
+            if (result.error) {
+              toast({
+                title: "Error",
+                description: result.error,
+                variant: "destructive",
+              });
+              setOutputText(result.original_text || "Error processing the image");
+              return;
+            }
+
+            setOutputType(result.output_type || selectedOutputFormat);
+            setIsHtmlOutput(result.is_html || false);
+            
+            if (result.output_type === "audio" || selectedOutputFormat === "audio") {
+              setAudioUrl(result.output_url || "");
+              setOutputText(result.output || result.original_text || "Image processed. Click Listen to hear description.");
+            } else {
+              setOutputText(result.output || result.original_text || "");
+            }
+            
+            setOriginalText(result.original_text || "");
+          } catch (error) {
+            console.error("Error processing image:", error);
+            toast({
+              title: "Error",
+              description: "Failed to process the image. Please try again.",
+              variant: "destructive",
+            });
+            setOutputText("Failed to process the image. Please try again.");
+          } finally {
+            setProcessingFile(false);
+          }
+        };
+        
+        reader.onerror = () => {
+          setProcessingFile(false);
+          toast({
+            title: "Error",
+            description: "Failed to read the image file. Please try again.",
+            variant: "destructive",
+          });
+        };
+        
+        reader.readAsDataURL(file);
+      } else {
+        // For non-image files, use FormData and upload
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const uploadResponse = await fetch("http://localhost:5000/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            input_type: "image",
-            input_content: uploadData.file_path, // Use the file path from the upload response
-            output_format: selectedOutputFormat,
-          }),
+          body: formData,
         });
 
-        if (!convertResponse.ok) {
-          throw new Error(`Conversion failed with status ${convertResponse.status}`);
+        if (!uploadResponse.ok) {
+          throw new Error(`Upload failed with status ${uploadResponse.status}`);
         }
 
-        const result = await convertResponse.json();
-        setOutputText(result.output || "Image processed successfully");
+        const uploadData = await uploadResponse.json();
+        setOutputText(`File uploaded: ${file.name}`);
+        setProcessingFile(false);
       }
     } catch (error) {
       console.error("Error processing file:", error);
@@ -236,11 +315,76 @@ export default function DemoSection({ type }: DemoSectionProps) {
         description: "Failed to process the uploaded file. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setProcessingFile(false);
+    } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+    }
+  };
+
+  // Handle URL input
+  const handleUrlSubmit = async () => {
+    if (!inputText.trim() || !inputText.startsWith("http")) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid URL starting with http:// or https://",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const convertResponse = await fetch("http://localhost:5000/convert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input_type: "url",
+          input_content: inputText,
+          output_format: selectedOutputFormat,
+          language: selectedLanguage,
+        }),
+      });
+
+      if (!convertResponse.ok) {
+        throw new Error(`Server responded with ${convertResponse.status}`);
+      }
+
+      const result = await convertResponse.json();
+      
+      if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
+        setOutputText(result.original_text || "Error processing the URL");
+        return;
+      }
+
+      setOutputType(result.output_type || selectedOutputFormat);
+      setIsHtmlOutput(result.is_html || false);
+      
+      if (result.output_type === "audio" || selectedOutputFormat === "audio") {
+        setAudioUrl(result.output_url || "");
+        setOutputText(result.output || result.original_text || "URL processed. Click Listen to hear content.");
+      } else {
+        setOutputText(result.output || result.original_text || "");
+      }
+      
+      setOriginalText(result.original_text || "");
+    } catch (error) {
+      console.error("Error processing URL:", error);
+      setOutputText("Failed to process URL. Please check the URL and try again.");
+      toast({
+        title: "Error",
+        description: "Failed to process the URL content.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -248,13 +392,18 @@ export default function DemoSection({ type }: DemoSectionProps) {
   const handleClear = () => {
     setInputText("");
     setOutputText("");
+    setOriginalText("");
     setAudioUrl("");
+    setOutputType("");
+    setIsHtmlOutput(false);
   };
 
   // Handle submit based on type
   const handleSubmit = () => {
     if (type === "chatbot") {
       handleChatSubmit();
+    } else if (inputText.trim().startsWith("http")) {
+      handleUrlSubmit();
     } else {
       handleConversionSubmit();
     }
@@ -350,6 +499,7 @@ export default function DemoSection({ type }: DemoSectionProps) {
                     <SelectItem value="audio">Listen</SelectItem>
                     <SelectItem value="braille">Braille</SelectItem>
                     <SelectItem value="dyslexia">Dyslexia-Friendly</SelectItem>
+                    <SelectItem value="simplified">Simplified Text</SelectItem>
                     <SelectItem value="sign" disabled>Sign Language (Not Available Now)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -365,6 +515,9 @@ export default function DemoSection({ type }: DemoSectionProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="fr">French</SelectItem>
+                    <SelectItem value="de">German</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -388,22 +541,38 @@ export default function DemoSection({ type }: DemoSectionProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => setInputText("https://example.com/article")}>
-              <LinkIcon className="h-4 w-4 mr-2" />
-              Enter URL
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleVoiceInput} 
+              disabled={loading || processingFile}>
+              <MicIcon className="h-4 w-4 mr-2" />
+              Voice Input
             </Button>
-            <Button variant="outline" size="sm" onClick={handleImageClick} disabled={loading || processingFile}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleImageClick} 
+              disabled={loading || processingFile}>
               <ImageIcon className="h-4 w-4 mr-2" />
               Upload Image
             </Button>
           </div>
 
           <div className="flex justify-between">
-            <Button onClick={handleSubmit} disabled={loading || !inputText.trim() || inputText === "Listening..."} className="gap-2">
+            <Button 
+              onClick={handleSubmit} 
+              disabled={loading || processingFile || !inputText.trim() || inputText === "Listening..."} 
+              className="gap-2">
               {loading || processingFile ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Processing...</span>
+                </>
+              ) : inputText.trim().startsWith("http") ? (
+                <>
+                  <LinkIcon className="h-4 w-4 mr-1" />
+                  <span>Process URL</span>
                 </>
               ) : (
                 <>
@@ -419,15 +588,37 @@ export default function DemoSection({ type }: DemoSectionProps) {
           {outputText && (
             <div className="mt-6">
               <p className="text-sm font-medium mb-2">Converted Content:</p>
-              <div className={`p-4 border rounded-lg ${outputType === "dyslexia" ? "font-dyslexic" : ""}`}>
-                {outputText}
-              </div>
+              
+              {/* Display output based on type */}
+              {isHtmlOutput ? (
+                <div 
+                  className={`p-4 border rounded-lg ${outputType === "dyslexia" ? "font-dyslexic" : ""}`}
+                  dangerouslySetInnerHTML={{ __html: outputText }}
+                />
+              ) : (
+                <div className={`p-4 border rounded-lg ${outputType === "dyslexia" ? "font-dyslexic" : ""}`}>
+                  {outputText}
+                </div>
+              )}
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {selectedOutputFormat === "audio" && (
+                {(selectedOutputFormat === "audio" || audioUrl) && (
                   <Button variant="ghost" size="sm" className="gap-2" onClick={handleListen}>
                     <Volume2 className="h-4 w-4" />
                     <span>Listen</span>
+                  </Button>
+                )}
+                
+                {originalText && outputText !== originalText && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setOutputText(originalText);
+                      setOutputType("original");
+                      setIsHtmlOutput(false);
+                    }}>
+                    Show Original
                   </Button>
                 )}
               </div>

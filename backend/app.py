@@ -17,6 +17,7 @@ from io import BytesIO
 import base64
 import tempfile
 import numpy as np
+import time
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -377,8 +378,10 @@ def convert():
                 tts.save(audio_path)
                 
                 return jsonify({
-                    "original_text": text,
-                    "audio_url": f"http://localhost:5000/{audio_path}"
+                    "output": text,
+                    "output_type": "audio",
+                    "audio_url": f"http://localhost:5000/{audio_path}",
+                    "original_text": text
                 })
             except Exception as e:
                 return jsonify({"error": f"TTS error: {str(e)}", "original_text": text}), 200
@@ -388,8 +391,10 @@ def convert():
             try:
                 braille_text = text_to_braille(text)
                 return jsonify({
+                    "output": braille_text,
+                    "output_type": "braille",
                     "original_text": text,
-                    "braille_text": braille_text
+                    # "braille_text": braille_text
                 })
             except Exception as e:
                 return jsonify({"error": f"Braille conversion error: {str(e)}", "original_text": text}), 200
@@ -399,8 +404,10 @@ def convert():
             try:
                 simplified_text = simplify_text(text)
                 return jsonify({
+                    "output": simplified_text,
+                    "output_type": "simplified",
                     "original_text": text,
-                    "simplified_text": simplified_text
+                    # "simplified_text": simplified_text
                 })
             except Exception as e:
                 return jsonify({"error": f"Simplification error: {str(e)}", "original_text": text}), 200
@@ -410,9 +417,10 @@ def convert():
             try:
                 dyslexia_text = format_for_dyslexia(text)
                 return jsonify({
-                    "original_text": text,
-                    "dyslexia_text": dyslexia_text,
-                    "is_html": True  # Indicate that the response contains HTML
+                    "output": dyslexia_text,
+                    "output_type": "dyslexia",
+                    "is_html": True,
+                    "original_text": text
                 })
             except Exception as e:
                 return jsonify({"error": f"Dyslexia formatting error: {str(e)}", "original_text": text}), 200
