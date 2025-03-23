@@ -1,108 +1,276 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import {
-  MessageSquare,
-  Volume2,
-  Loader2,
-  ImageIcon,
-  LinkIcon,
-  VideoIcon,
-  HandIcon,
-  DownloadIcon,
-  ShareIcon,
-  FileTextIcon,
-  MicIcon,
-} from "lucide-react"
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MessageSquare, Volume2, Loader2, ImageIcon, LinkIcon, MicIcon } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 interface DemoSectionProps {
-  type: "chatbot" | "converter"
+  type: "chatbot" | "converter";
 }
 
 export default function DemoSection({ type }: DemoSectionProps) {
-  const [loading, setLoading] = useState(false)
-  const [inputText, setInputText] = useState("")
-  const [outputText, setOutputText] = useState("")
-  const [selectedVoice, setSelectedVoice] = useState("audio")
-  const [selectedFont, setSelectedFont] = useState("default")
-  const [fontSize, setFontSize] = useState(16)
-  const [contrast, setContrast] = useState(50)
+  const [loading, setLoading] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
+  const [audioUrl, setAudioUrl] = useState("");
+  const [selectedOutputFormat, setSelectedOutputFormat] = useState("audio");
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [processingFile, setProcessingFile] = useState(false);
+  const [outputType, setOutputType] = useState("");
 
-  const handleSubmit = async () => {
-    if (!inputText.trim()) return
+  // Handle chat submission
+  const handleChatSubmit = async () => {
+    if (!inputText.trim()) return;
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      // Send input text to the chatbot endpoint
       const chatResponse = await fetch("http://localhost:5000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: inputText }),
-      })
-      const chatData = await chatResponse.json()
-      setOutputText(chatData.response)
-
-      // Send chatbot response to the text-to-speech endpoint
-      const ttsResponse = await fetch("http://localhost:5000/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: chatData.response }),
-      })
-      const ttsData = await ttsResponse.json()
-
-      // Play the generated audio
-      const audio = new Audio(ttsData.audio_url)
-      audio.play()
-    } catch (error) {
-      console.error("Error:", error)
-      setOutputText("Failed to get response from the chatbot.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleVoiceInput = () => {
-    const recognition = new ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)()
-    recognition.lang = "en-US" 
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript
-      setInputText(transcript)
-    }
-    recognition.start()
-  }
-
-  const handleClear = () => {
-    setInputText("")
-    setOutputText("")
-  }
-
-  const handleListen = async () => {
-    if (!outputText.trim()) return;
-  
-    try {
-      // Send chatbot response to the text-to-speech endpoint
-      const ttsResponse = await fetch("http://localhost:5000/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: outputText }),
       });
-      const ttsData = await ttsResponse.json();
-  
-      // Play the generated audio
-      const audio = new Audio(ttsData.audio_url);
-      audio.play();
+
+      if (!chatResponse.ok) {
+        throw new Error(`Server responded with ${chatResponse.status}`);
+      }
+
+      const chatData = await chatResponse.json();
+      setOutputText(chatData.response);
+
+      generateAudio(chatData.response);
     } catch (error) {
       console.error("Error:", error);
+      setOutputText("Failed to get response from the chatbot. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to connect to the chatbot service.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle content conversion
+  const handleConversionSubmit = async () => {
+    if (!inputText.trim()) return;
+
+    setLoading(true);
+
+    try {
+      const convertResponse = await fetch("http://localhost:5000/convert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input_type: "text",
+          input_content: inputText,
+          output_format: selectedOutputFormat,
+          language: selectedLanguage,
+        }),
+      });
+
+      if (!convertResponse.ok) {
+        throw new Error(`Server responded with ${convertResponse.status}`);
+      }
+
+      const convertData = await convertResponse.json();
+
+      if (convertData.output_type === "audio") {
+        setAudioUrl(convertData.output_url);
+        setOutputText("Audio generated successfully. Click Listen to play.");
+        setOutputType("audio");
+      } else {
+        setOutputText(convertData.output);
+        setOutputType(convertData.output_type);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setOutputText("Failed to convert content. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to connect to the conversion service.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate audio from text
+  const generateAudio = async (text: string) => {
+    try {
+      const ttsResponse = await fetch("http://localhost:5000/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!ttsResponse.ok) {
+        throw new Error(`TTS server responded with ${ttsResponse.status}`);
+      }
+
+      const ttsData = await ttsResponse.json();
+      setAudioUrl(ttsData.audio_url);
+    } catch (error) {
+      console.error("Error generating audio:", error);
+    }
+  };
+
+  // Play audio
+  const handleListen = () => {
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.play().catch((err) => {
+        console.error("Error playing audio:", err);
+        toast({
+          title: "Error",
+          description: "Could not play audio. Please try again.",
+          variant: "destructive",
+        });
+      });
+    } else if (outputText) {
+      generateAudio(outputText).then(() => {
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audio.play();
+        }
+      });
+    }
+  };
+
+  // Handle voice input
+  const handleVoiceInput = () => {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      toast({
+        title: "Not Supported",
+        description: "Voice recognition is not supported in your browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = selectedLanguage || "en-US";
+
+    setInputText("Listening...");
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputText(transcript);
+    };
+
+    recognition.onerror = () => {
+      setInputText(inputText === "Listening..." ? "" : inputText);
+      toast({
+        title: "Error",
+        description: "Could not capture voice input. Please try again.",
+        variant: "destructive",
+      });
+    };
+
+    recognition.start();
+  };
+
+  // Handle image upload
+  const handleImageClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Process uploaded file
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setProcessingFile(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Upload file
+      const uploadResponse = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed with status ${uploadResponse.status}`);
+      }
+
+      const uploadData = await uploadResponse.json();
+
+      if (file.type.startsWith("image/")) {
+        setInputText(`Processing image: ${file.name}`);
+
+        // Process the image for object detection
+        const convertResponse = await fetch("http://localhost:5000/convert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            input_type: "image",
+            input_content: uploadData.file_path, // Use the file path from the upload response
+            output_format: selectedOutputFormat,
+          }),
+        });
+
+        if (!convertResponse.ok) {
+          throw new Error(`Conversion failed with status ${convertResponse.status}`);
+        }
+
+        const result = await convertResponse.json();
+        setOutputText(result.output || "Image processed successfully");
+      }
+    } catch (error) {
+      console.error("Error processing file:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process the uploaded file. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingFile(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Clear inputs and outputs
+  const handleClear = () => {
+    setInputText("");
+    setOutputText("");
+    setAudioUrl("");
+  };
+
+  // Handle submit based on type
+  const handleSubmit = () => {
+    if (type === "chatbot") {
+      handleChatSubmit();
+    } else {
+      handleConversionSubmit();
     }
   };
 
   return (
     <div className="space-y-6">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        className="hidden"
+        accept="image/*"
+        title="Upload file"
+      />
+
       {type === "chatbot" ? (
         <>
           <div className="space-y-2">
@@ -120,18 +288,14 @@ export default function DemoSection({ type }: DemoSectionProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={handleVoiceInput}>
+            <Button variant="outline" size="sm" onClick={handleVoiceInput} disabled={loading}>
               <MicIcon className="h-4 w-4 mr-2" />
               Voice Input
             </Button>
-            {/* <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 📷")}>
-              <ImageIcon className="h-4 w-4 mr-2" />
-              Upload Image
-            </Button> */}
           </div>
 
           <div className="flex justify-between">
-            <Button onClick={handleSubmit} disabled={loading || !inputText.trim()} className="gap-2">
+            <Button onClick={handleSubmit} disabled={loading || !inputText.trim() || inputText === "Listening..."} className="gap-2">
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -166,14 +330,6 @@ export default function DemoSection({ type }: DemoSectionProps) {
                   <Volume2 className="h-4 w-4" />
                   <span>Listen</span>
                 </Button>
-                {/* <Button variant="ghost" size="sm" className="gap-2">
-                  <HandIcon className="h-4 w-4" />
-                  <span>Sign Language</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <FileTextIcon className="h-4 w-4" />
-                  <span>Simplified Text</span>
-                </Button> */}
               </div>
             </div>
           )}
@@ -186,16 +342,15 @@ export default function DemoSection({ type }: DemoSectionProps) {
                 <label htmlFor="output-format" className="block text-sm font-medium mb-2">
                   Output Format
                 </label>
-                <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                <Select value={selectedOutputFormat} onValueChange={setSelectedOutputFormat}>
                   <SelectTrigger id="output-format">
                     <SelectValue placeholder="Select output format" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="audio">Audio Description</SelectItem>
+                    <SelectItem value="audio">Listen</SelectItem>
                     <SelectItem value="braille">Braille</SelectItem>
-                    <SelectItem value="simplified">Simplified Text</SelectItem>
-                    <SelectItem value="signlanguage">Sign Language</SelectItem>
-                    <SelectItem value="dyslexic">Dyslexia-Friendly</SelectItem>
+                    <SelectItem value="dyslexia">Dyslexia-Friendly</SelectItem>
+                    <SelectItem value="sign" disabled>Sign Language (Not Available Now)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -204,34 +359,15 @@ export default function DemoSection({ type }: DemoSectionProps) {
                 <label htmlFor="language-select" className="block text-sm font-medium mb-2">
                   Language
                 </label>
-                <Select value={selectedFont} onValueChange={setSelectedFont}>
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                   <SelectTrigger id="language-select">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                    <SelectItem value="de">German</SelectItem>
-                    <SelectItem value="zh">Chinese</SelectItem>
-                    <SelectItem value="ar">Arabic</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div>
-              <label htmlFor="font-size" className="block text-sm font-medium mb-2">
-                Font Size: {fontSize}px
-              </label>
-              <Slider id="font-size" value={[fontSize]} onValueChange={(value) => setFontSize(value[0])} min={12} max={24} step={1} />
-            </div>
-
-            <div>
-              <label htmlFor="contrast" className="block text-sm font-medium mb-2">
-                Contrast: {contrast}%
-              </label>
-              <Slider id="contrast" value={[contrast]} onValueChange={(value) => setContrast(value[0])} min={0} max={100} step={1} />
             </div>
           </div>
 
@@ -256,23 +392,15 @@ export default function DemoSection({ type }: DemoSectionProps) {
               <LinkIcon className="h-4 w-4 mr-2" />
               Enter URL
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 📷")}>
+            <Button variant="outline" size="sm" onClick={handleImageClick} disabled={loading || processingFile}>
               <ImageIcon className="h-4 w-4 mr-2" />
               Upload Image
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 🎬")}>
-              <VideoIcon className="h-4 w-4 mr-2" />
-              Upload Video
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputText(inputText + " 🎤")}>
-              <MicIcon className="h-4 w-4 mr-2" />
-              Voice Input
             </Button>
           </div>
 
           <div className="flex justify-between">
-            <Button onClick={handleSubmit} disabled={loading || !inputText.trim()} className="gap-2">
-              {loading ? (
+            <Button onClick={handleSubmit} disabled={loading || !inputText.trim() || inputText === "Listening..."} className="gap-2">
+              {loading || processingFile ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Processing...</span>
@@ -291,28 +419,22 @@ export default function DemoSection({ type }: DemoSectionProps) {
           {outputText && (
             <div className="mt-6">
               <p className="text-sm font-medium mb-2">Converted Content:</p>
-              <div className={`p-4 border rounded-lg ${selectedFont}`} style={{ fontSize: `${fontSize}px`, filter: `contrast(${contrast}%)` }}>
+              <div className={`p-4 border rounded-lg ${outputType === "dyslexia" ? "font-dyslexic" : ""}`}>
                 {outputText}
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <Volume2 className="h-4 w-4" />
-                  <span>Listen</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <DownloadIcon className="h-4 w-4" />
-                  <span>Download</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <ShareIcon className="h-4 w-4" />
-                  <span>Share</span>
-                </Button>
+                {selectedOutputFormat === "audio" && (
+                  <Button variant="ghost" size="sm" className="gap-2" onClick={handleListen}>
+                    <Volume2 className="h-4 w-4" />
+                    <span>Listen</span>
+                  </Button>
+                )}
               </div>
             </div>
           )}
         </>
       )}
     </div>
-  )
+  );
 }
