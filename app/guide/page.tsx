@@ -19,9 +19,9 @@ export default function GuidePage() {
       <main className="container py-10">
         <div className="max-w-3xl mx-auto space-y-10">
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tighter">AI4All Platform Guide</h1>
+            <h1 className="text-4xl font-bold tracking-tighter">AI Accessibility Assistant Guide</h1>
             <p className="text-xl text-muted-foreground">
-              Learn how to use the AI4All platform and Chrome extension for comprehensive accessibility
+              Learn how to use the AI Accessibility Assistant browser extension for comprehensive accessibility.
             </p>
           </div>
 
@@ -38,11 +38,16 @@ export default function GuidePage() {
                     <div className="space-y-2">
                       <h3 className="text-xl font-medium">Step 1: Download the Extension</h3>
                       <p>
-                        Visit the Chrome Web Store and search for "AI Accessibility Assistant" or click the button
-                        below.
+                        Download the extension files from the GitHub repository by clicking the button below.
                       </p>
-                      <Button className="mt-2">
-                        <span>Download from Chrome Web Store</span>
+                      <Button className="mt-2" asChild>
+                        <a
+                          href="https://github.com/Krixna-Kant/AI-Accessibility-Extension"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span>Download from GitHub</span>
+                        </a>
                       </Button>
                     </div>
                   </div>
@@ -56,15 +61,16 @@ export default function GuidePage() {
                       <MousePointer className="h-8 w-8 text-primary" aria-hidden="true" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-medium">Step 2: Add to Chrome</h3>
+                      <h3 className="text-xl font-medium">Step 2: Install the Extension</h3>
                       <p>
-                        Click the "Add to Chrome" button on the Chrome Web Store page and confirm the installation when
-                        prompted.
+                        Open Google Chrome and go to <code>chrome://extensions/</code>. Enable Developer mode (toggle in
+                        the top right corner), then click "Load unpacked" and select the folder where you extracted the
+                        extension files.
                       </p>
                       <div className="mt-4 border rounded-lg overflow-hidden">
                         <img
-                          src="/placeholder.svg?height=300&width=600"
-                          alt="Screenshot showing the Add to Chrome button on the Chrome Web Store"
+                          src="/extension-dev.jpg"
+                          alt="Screenshot showing the Load unpacked button in Chrome extensions"
                           className="w-full h-auto"
                         />
                       </div>
@@ -82,12 +88,12 @@ export default function GuidePage() {
                     <div className="space-y-2">
                       <h3 className="text-xl font-medium">Step 3: Pin to Toolbar</h3>
                       <p>
-                        Click the extensions icon in Chrome, find AI Accessibility Assistant, and click the pin icon to
-                        keep it easily accessible in your toolbar.
+                        After installation, click the extensions icon in Chrome, find "AI Accessibility Assistant," and
+                        click the pin icon to keep it easily accessible in your toolbar.
                       </p>
                       <div className="mt-4 border rounded-lg overflow-hidden">
                         <img
-                          src="/placeholder.svg?height=300&width=600"
+                          src="/pin-img.jpg"
                           alt="Screenshot showing how to pin the extension to the Chrome toolbar"
                           className="w-full h-auto"
                         />
@@ -112,7 +118,10 @@ export default function GuidePage() {
               <TabsContent value="basics" className="space-y-6 mt-6">
                 <div className="space-y-4">
                   <h3 className="text-xl font-medium">Getting Started</h3>
-                  <p>After installation, click the extension icon in your toolbar to open the main panel.</p>
+                  <p>
+                    After installation, click the extension icon in your toolbar to open the main panel. Here are some of
+                    the key features:
+                  </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div className="border rounded-lg p-4 space-y-2">
@@ -120,7 +129,7 @@ export default function GuidePage() {
                       <p>Select text on any webpage and click the "Read Aloud" button in the extension panel.</p>
                       <div className="mt-2 border rounded-lg overflow-hidden">
                         <img
-                          src="/placeholder.svg?height=200&width=300"
+                          src="/read-img.jpg"
                           alt="Demonstration of the Text-to-Speech feature"
                           className="w-full h-auto"
                         />
@@ -128,29 +137,28 @@ export default function GuidePage() {
                     </div>
 
                     <div className="border rounded-lg p-4 space-y-2">
-                      <h4 className="font-medium">Font Adjustment</h4>
+                      <h4 className="font-medium">Dyslexia-Friendly Font</h4>
                       <p>
-                        Click "Font Settings" in the extension panel to choose dyslexia-friendly fonts and adjust text
-                        size.
+                        Click "Font Settings" in the extension panel to switch to OpenDyslexic for better readability.
                       </p>
                       <div className="mt-2 border rounded-lg overflow-hidden">
                         <img
-                          src="/placeholder.svg?height=200&width=300"
-                          alt="Demonstration of the Font Adjustment feature"
+                          src="/dyslexia-font.jpg"
+                          alt="Demonstration of the Dyslexia-Friendly Font feature"
                           className="w-full h-auto"
                         />
                       </div>
                     </div>
 
                     <div className="border rounded-lg p-4 space-y-2">
-                      <h4 className="font-medium">Color Contrast</h4>
+                      <h4 className="font-medium">High Contrast Mode</h4>
                       <p>
-                        Use the "Color Settings" to adjust contrast or choose from preset themes for better visibility.
+                        Use the "Color Settings" to enable high contrast mode for better visibility.
                       </p>
                       <div className="mt-2 border rounded-lg overflow-hidden">
                         <img
-                          src="/placeholder.svg?height=200&width=300"
-                          alt="Demonstration of the Color Contrast feature"
+                          src="/high-contrast.jpg"
+                          alt="Demonstration of the High Contrast Mode feature"
                           className="w-full h-auto"
                         />
                       </div>
@@ -161,7 +169,7 @@ export default function GuidePage() {
                       <p>Select text and click "Translate" to convert content to your preferred language.</p>
                       <div className="mt-2 border rounded-lg overflow-hidden">
                         <img
-                          src="/placeholder.svg?height=200&width=300"
+                          src="/trans-img.jpg"
                           alt="Demonstration of the Translation feature"
                           className="w-full h-auto"
                         />
@@ -194,20 +202,20 @@ export default function GuidePage() {
                           <td className="p-3">Scrolls the page up</td>
                         </tr>
                         <tr className="border-t">
-                          <td className="p-3 font-medium">"Click [element]"</td>
-                          <td className="p-3">Clicks on the specified element</td>
+                          <td className="p-3 font-medium">"Go back"</td>
+                          <td className="p-3">Navigates to the previous page</td>
                         </tr>
                         <tr className="border-t">
-                          <td className="p-3 font-medium">"Read page"</td>
-                          <td className="p-3">Reads the current page content</td>
+                          <td className="p-3 font-medium">"Go forward"</td>
+                          <td className="p-3">Navigates to the next page</td>
                         </tr>
                         <tr className="border-t">
                           <td className="p-3 font-medium">"Stop reading"</td>
                           <td className="p-3">Stops the text-to-speech</td>
                         </tr>
                         <tr className="border-t">
-                          <td className="p-3 font-medium">"Translate page"</td>
-                          <td className="p-3">Translates the current page</td>
+                          <td className="p-3 font-medium">"Read page"</td>
+                          <td className="p-3">Reads the current page content</td>
                         </tr>
                       </tbody>
                     </table>
@@ -307,7 +315,9 @@ export default function GuidePage() {
                 <Link href="/#contact">Contact Support</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/#faq">View FAQs</Link>
+                <Link href="https://github.com/Krixna-Kant/AI-Accessibility-Extension" target="_blank" rel="noopener noreferrer">
+                  Visit GitHub Repository
+                </Link>
               </Button>
             </div>
           </section>
@@ -316,10 +326,9 @@ export default function GuidePage() {
 
       <footer className="border-t py-8 bg-muted/40">
         <div className="container text-center">
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} AI4All. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} AI Accessibility Assistant. All rights reserved.</p>
         </div>
       </footer>
     </div>
   )
 }
-
