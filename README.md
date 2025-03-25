@@ -72,7 +72,39 @@
 - **Encourages AI adoption** in accessibility-focused applications.
 
 ## Snapshots
-![Landing Page](https://drive.google.com/file/d/1ini5Ch2dZLEzE4agcpmBn0yBVxuAkuEF/view?usp=sharing)
+
+### Landing Page
+![Landing Page](public/Snapshots/AI4all%20img-1.jpg)
+
+### AI Chatbot
+![AI Chatbot](public/Snapshots/AI4all%20img-3.jpg)
+
+### Content Converter
+![Content Converter](public/Snapshots/AI4all%20img-4.jpg)
+
+### Braille Content Converter
+![Braille Content Converter](public/Snapshots/AI4all%20img-5.jpg)
+
+### Dyslexia Content Converter
+![Dyslexia Content Converter](public/Snapshots/AI4all%20img-6.jpg)
+
+### Text Simplified
+![Text Simplified](public/Snapshots/AI4all%20img-7.jpg)
+
+### FAQ Section
+![FAQ Section](public/Snapshots/AI4all%20img-8.jpg)
+
+### Extension Guide
+![Extension Guide](public/Snapshots/AI4all%20img-10.jpg)
+
+### AI Accessibility Extension
+![AI Accessibility Extension](public/Snapshots/Extension-img.jpg)
+
+## Project Demonstration
+
+[Click here to watch the project demonstration](https://drive.google.com/file/d/1EAaTPshUfwZ9HkKoBM2DcmHU0t4PXAW5/view?usp=drive_link)
+
+[Click here to watch the extension demonstration](https://drive.google.com/file/d/1UXOXsUuAcB4EixPuvxQocFDyWj2c2LkL/view?usp=drive_link)
 
 ## License
 This project is licensed under the MIT License.
